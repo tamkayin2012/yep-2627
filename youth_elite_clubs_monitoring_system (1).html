@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Youth Elite Clubs Monitoring System (2026–2027)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- SheetJS for real Excel (.xlsx/.xls/.csv) parsing & Excel export -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <!-- Mammoth.js for Word (.docx) text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- PDF.js for PDF (.pdf) text extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              850: '#152036',
+              900: '#0f172a',
+              950: '#090d16',
+            },
+            pitch: {
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom scrollbars for tables and club tabs */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="bg-navy-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3 gap-3">
+        <!-- Brand / Title -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-pitch-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 6l3.5 2.5-1.3 4.1h-4.4L8.5 8.5 12 6z"></path>
+                <path d="M12 2v4M21.5 9l-6 1.5M18 20l-3.8-3.4M6 20l3.8-3.4M2.5 9l6 1.5"></path>
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-base sm:text-lg font-bold tracking-tight leading-tight">Youth Elite Clubs Monitoring</h1>
+              <p class="text-xs text-slate-400">14 Clubs Compliance &amp; Spot Check Portal (2026–2027)</p>
+            </div>
+          </div>
+
+          <!-- Live Sync Indicator -->
+          <div class="flex items-center gap-2 md:hidden">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Live
+            </span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex flex-wrap items-center gap-1.5 sm:gap-2" aria-label="Main Navigation">
+          <button onclick="switchSection('submission')" id="nav-submission"
+            class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 bg-pitch-500 text-white shadow-sm">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <span>Spot Check Report Submission</span>
+          </button>
+
+          <button onclick="switchSection('schedule')" id="nav-schedule"
+            class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+            <span>Training Schedule</span>
+          </button>
+
+          <button onclick="switchSection('calendar')" id="nav-calendar"
+            class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>Spot Check Calendar</span>
+          </button>
+
+          <button onclick="switchSection('approval')" id="nav-approval"
+            class="nav-btn px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-1.5 text-slate-300 hover:text-white hover:bg-slate-800">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            <span>Report Approval</span>
+            <span id="pending-badge" class="hidden ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-amber-500 text-navy-950 rounded-full">0</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 1: SPOT CHECK REPORT SUBMISSION                               -->
+    <!-- ===================================================================== -->
+    <section id="section-submission" class="space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-navy-900 px-6 py-5 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-xl font-bold flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-pitch-500"></span>
+              Spot Check Report Submission
+            </h2>
+            <p class="text-slate-300 text-sm mt-0.5">Submit field inspection details, attendance records, and training photos for Admin approval.</p>
+          </div>
+          <span class="inline-flex items-center px-3 py-1 rounded-xl text-xs font-medium bg-slate-800 text-slate-200 border border-slate-700 self-start sm:self-auto">
+            Officer Portal
+          </span>
+        </div>
+
+        <form id="spot-check-form" class="p-6 space-y-6">
+          <!-- Row 1: Club, Date, Age Group -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label for="report-club" class="block text-sm font-semibold text-slate-700 mb-1.5">Youth Elite Club <span class="text-rose-500">*</span></label>
+              <select id="report-club" required
+                class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition">
+                <option value="">-- Select Club --</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="report-date" class="block text-sm font-semibold text-slate-700 mb-1.5">Date of Spot Check <span class="text-rose-500">*</span></label>
+              <input type="date" id="report-date" required
+                class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+              <p id="funding-period-hint" class="text-xs text-slate-500 mt-1">1st Period: Sep 2026–Jan 2027 | 2nd Period: Feb 2027–Jun 2027</p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-semibold text-slate-700 mb-1.5">Age Group <span class="text-rose-500">*</span></label>
+              <div class="grid grid-cols-3 gap-2">
+                <label class="cursor-pointer">
+                  <input type="radio" name="ageGroup" value="U14" required class="peer sr-only" />
+                  <div class="rounded-xl border border-slate-300 py-2.5 text-center text-sm font-semibold text-slate-700 peer-checked:bg-navy-900 peer-checked:text-white peer-checked:border-navy-900 hover:bg-slate-50 transition">
+                    U14
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="ageGroup" value="U16" class="peer sr-only" />
+                  <div class="rounded-xl border border-slate-300 py-2.5 text-center text-sm font-semibold text-slate-700 peer-checked:bg-navy-900 peer-checked:text-white peer-checked:border-navy-900 hover:bg-slate-50 transition">
+                    U16
+                  </div>
+                </label>
+                <label class="cursor-pointer">
+                  <input type="radio" name="ageGroup" value="U18" class="peer sr-only" />
+                  <div class="rounded-xl border border-slate-300 py-2.5 text-center text-sm font-semibold text-slate-700 peer-checked:bg-navy-900 peer-checked:text-white peer-checked:border-navy-900 hover:bg-slate-50 transition">
+                    U18
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Venue, Training Time, Spot Check Time -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label for="report-venue" class="block text-sm font-semibold text-slate-700 mb-1.5">Venue <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-venue" required placeholder="e.g., Kowloon Bay Park Pitch 1"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+
+            <div>
+              <label for="report-training-time" class="block text-sm font-semibold text-slate-700 mb-1.5">Training Time <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-training-time" required placeholder="e.g., 19:00 - 21:00"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+
+            <div>
+              <label for="report-spotcheck-time" class="block text-sm font-semibold text-slate-700 mb-1.5">Spot Check Time <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-spotcheck-time" required placeholder="e.g., 19:30 - 20:15"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+          </div>
+
+          <!-- Row 3: Player & Goalkeeper Attendance + Officer Name -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div>
+              <label for="report-field-players" class="block text-sm font-semibold text-slate-700 mb-1.5">Attendance of Field Players <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-field-players" required placeholder="e.g., 18 (or 18/22)"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+
+            <div>
+              <label for="report-goalkeepers" class="block text-sm font-semibold text-slate-700 mb-1.5">Attendance of Goalkeepers <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-goalkeepers" required placeholder="e.g., 2 (or 2/3)"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+
+            <div>
+              <label for="report-officer-name" class="block text-sm font-semibold text-slate-700 mb-1.5">Spot Check Officer Name <span class="text-rose-500">*</span></label>
+              <input type="text" id="report-officer-name" required placeholder="Enter your full name"
+                class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition" />
+            </div>
+          </div>
+
+          <!-- Row 4: Staff Attendance Checkboxes -->
+          <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-1">
+              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Coaching &amp; Technical Staff Attendance <span class="text-rose-500">*</span></h3>
+              <span class="text-xs text-slate-500">Select either Attended or Not attended for each role</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="staff-attendance-container">
+              <!-- Generated cleanly via JS for all 4 required roles -->
+            </div>
+          </div>
+
+          <!-- Row 5: Remarks & Extra Staff -->
+          <div>
+            <label for="report-remarks" class="block text-sm font-semibold text-slate-700 mb-1.5">Remarks &amp; Any Other Extra Staff</label>
+            <textarea id="report-remarks" rows="3" placeholder="Record any additional coaches/physios present, pitch conditions, late arrivals, or session observations..."
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none transition"></textarea>
+          </div>
+
+          <!-- Row 6: Photo Upload -->
+          <div>
+            <label class="block text-sm font-semibold text-slate-700 mb-1.5">Upload Training Photos</label>
+            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center hover:border-pitch-500 transition bg-slate-50/60">
+              <input type="file" id="report-photos" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(event)" />
+              <label for="report-photos" class="cursor-pointer flex flex-col items-center justify-center gap-2">
+                <div class="w-11 h-11 rounded-full bg-emerald-100 text-pitch-600 flex items-center justify-center">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700">Click to select training photos</span>
+                <span class="text-xs text-slate-500">Supports JPG, PNG, WEBP (Multiple photos allowed, auto-compressed for instant review)</span>
+              </label>
+            </div>
+            <!-- Photo Previews -->
+            <div id="photo-preview-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 mt-3"></div>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3 border-t border-slate-100">
+            <button type="button" onclick="resetSubmissionForm()"
+              class="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+              Clear Form
+            </button>
+            <button type="submit"
+              class="w-full sm:w-auto px-7 py-2.5 rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white text-sm font-bold shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+              Submit Report to Approval Queue
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 2: TRAINING SCHEDULE (PER-CLUB UPLOAD & BOOKING CALENDAR)     -->
+    <!-- ===================================================================== -->
+    <section id="section-schedule" class="hidden space-y-6">
+      <!-- Club Selector Strip -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">14 Youth Elite Clubs — Training Schedules &amp; Officer Booking</h2>
+            <p class="text-xs text-slate-500">Select a club to upload its schedule (Excel, Word, PDF) and click calendar dates to book a Spot Check.</p>
+          </div>
+          <span id="selected-club-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-navy-900 text-white self-start sm:self-auto">
+            Eastern
+          </span>
+        </div>
+
+        <div id="club-selector-pills" class="flex flex-wrap gap-2">
+          <!-- 14 Club buttons rendered here -->
+        </div>
+      </div>
+
+      <!-- Main Club Workspace: Upload & Parsed Schedule + Interactive Club Calendar -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left Column (4 cols): Upload Schedule & Extracted Sessions -->
+        <div class="lg:col-span-4 space-y-6">
+          <!-- Upload Box -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <h3 class="text-base font-bold text-slate-900 mb-1">Upload Training Schedule</h3>
+            <p class="text-xs text-slate-500 mb-4">For <strong id="upload-club-name" class="text-navy-900">Eastern</strong>. Automatically extracts dates and populates the calendar.</p>
+
+            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-5 text-center hover:border-pitch-500 transition bg-slate-50">
+              <input type="file" id="schedule-file-input" accept=".xlsx,.xls,.csv,.doc,.docx,.pdf" class="hidden" onchange="handleScheduleFileUpload(event)" />
+              <label for="schedule-file-input" class="cursor-pointer flex flex-col items-center gap-2">
+                <div class="w-11 h-11 rounded-full bg-navy-900 text-white flex items-center justify-center shadow">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-800">Upload Excel, Word, or PDF</span>
+                <span class="text-[11px] text-slate-500">.xlsx, .xls, .csv, .docx, .doc, .pdf</span>
+              </label>
+            </div>
+
+            <!-- Quick Add Single Training Date (Helper for unstructured files or instant entry) -->
+            <div class="mt-4 pt-4 border-t border-slate-100">
+              <details class="group">
+                <summary class="text-xs font-semibold text-pitch-700 cursor-pointer flex items-center justify-between">
+                  <span>+ Add / Fine-Tune Single Training Date</span>
+                  <span class="text-slate-400 group-open:rotate-180 transition-transform">▼</span>
+                </summary>
+                <div class="mt-3 space-y-2.5">
+                  <input type="date" id="manual-session-date" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                  <div class="grid grid-cols-2 gap-2">
+                    <select id="manual-session-age" class="rounded-xl border border-slate-300 px-2.5 py-2 text-xs">
+                      <option value="U14">U14</option>
+                      <option value="U16">U16</option>
+                      <option value="U18">U18</option>
+                      <option value="All Groups">All Groups</option>
+                    </select>
+                    <input type="text" id="manual-session-time" placeholder="Time (19:00-21:00)" class="rounded-xl border border-slate-300 px-2.5 py-2 text-xs" />
+                  </div>
+                  <input type="text" id="manual-session-venue" placeholder="Venue (optional)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs" />
+                  <button type="button" onclick="addManualTrainingSession()"
+                    class="w-full py-2 rounded-xl bg-navy-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+                    Add to Club Calendar
+                  </button>
+                </div>
+              </details>
+            </div>
+          </div>
+
+          <!-- Uploaded Files & Extracted Sessions List -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-bold text-slate-900">Uploaded Schedule Files</h3>
+              <span id="club-files-count" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">0 files</span>
+            </div>
+            <div id="club-uploaded-files-list" class="space-y-2 max-h-48 overflow-y-auto">
+              <p class="text-xs text-slate-400 italic py-4 text-center">No schedule files uploaded yet for this club.</p>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Scheduled Dates</h4>
+                <span id="club-sessions-count" class="text-xs font-semibold text-pitch-600">0 sessions</span>
+              </div>
+              <div id="club-sessions-list" class="space-y-1.5 max-h-56 overflow-y-auto">
+                <p class="text-xs text-slate-400 italic py-3 text-center">Calendar is currently empty.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column (8 cols): Interactive Club Calendar -->
+        <div class="lg:col-span-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-slate-100">
+            <div>
+              <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <span id="cal-club-heading">Eastern</span> — Training &amp; Spot Check Calendar
+              </h3>
+              <p class="text-xs text-slate-500">Click any date on the calendar to select as a Spot Check and insert your Officer Name.</p>
+            </div>
+
+            <!-- Month Controls -->
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+              <button onclick="changeClubCalendarMonth(-1)" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Previous Month">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              <span id="club-cal-month-label" class="text-sm font-bold text-navy-900 min-w-[140px] text-center">September 2026</span>
+              <button onclick="changeClubCalendarMonth(1)" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 transition" title="Next Month">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex flex-wrap items-center gap-4 py-3 text-xs text-slate-600">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-sky-100 border border-sky-400"></span> Uploaded Training Session</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-100 border border-amber-400"></span> Booked Spot Check (Officer Assigned)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-500"></span> Approved Spot Check</span>
+          </div>
+
+          <!-- Calendar Grid -->
+          <div class="border border-slate-200 rounded-2xl overflow-hidden flex-1 flex flex-col">
+            <div class="calendar-grid bg-slate-100 border-b border-slate-200 text-center py-2 text-xs font-bold text-slate-600">
+              <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            </div>
+            <div id="club-calendar-days" class="calendar-grid flex-1 bg-slate-200 gap-px">
+              <!-- Days rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 3: SPOT CHECK CALENDAR (MASTER TABLE & MASTER CALENDAR)       -->
+    <!-- ===================================================================== -->
+    <section id="section-calendar" class="hidden space-y-6">
+      <!-- KPI Summary Strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">Total Monitored Clubs</p>
+          <p class="text-2xl font-extrabold text-navy-900 mt-1">14 <span class="text-xs font-normal text-slate-400">Youth Elite Clubs</span></p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">Booked Spot Checks</p>
+          <p id="kpi-booked-count" class="text-2xl font-extrabold text-amber-600 mt-1">0</p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">1st Period Approved</p>
+          <p id="kpi-p1-count" class="text-2xl font-extrabold text-pitch-600 mt-1">0 <span class="text-xs font-normal text-slate-400">/ 28 target</span></p>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <p class="text-xs font-semibold text-slate-500 uppercase">2nd Period Approved</p>
+          <p id="kpi-p2-count" class="text-2xl font-extrabold text-sky-600 mt-1">0 <span class="text-xs font-normal text-slate-400">/ 28 target</span></p>
+        </div>
+      </div>
+
+      <!-- Master Funding Period Spot Check Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="px-6 py-4 bg-navy-900 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-lg font-bold">Master Spot Check Compliance Table (14 Clubs)</h2>
+            <p class="text-xs text-slate-300">Automatically updated upon Admin report approval (Target: 2 spot checks per club per funding period).</p>
+          </div>
+          <div class="text-xs text-slate-300 bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-700">
+            P1: Sep 2026 – Jan 2027 &bull; P2: Feb 2027 – Jun 2027
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <th class="py-3.5 px-4 w-12">#</th>
+                <th class="py-3.5 px-4">Youth Elite Club</th>
+                <th class="py-3.5 px-4">1st Funding Period<br><span class="text-[10px] font-normal text-slate-500 normal-case">Sep 2026 – Jan 2027 (Target: 2)</span></th>
+                <th class="py-3.5 px-4">2nd Funding Period<br><span class="text-[10px] font-normal text-slate-500 normal-case">Feb 2027 – Jun 2027 (Target: 2)</span></th>
+                <th class="py-3.5 px-4">Total Approved</th>
+                <th class="py-3.5 px-4">Upcoming Booked</th>
+              </tr>
+            </thead>
+            <tbody id="master-compliance-tbody" class="divide-y divide-slate-200 text-sm">
+              <!-- Populated dynamically for all 14 clubs -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Master Spot Check Calendar (All 14 Clubs Combined) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900">Master Spot Check Calendar (All 14 Clubs)</h3>
+            <p class="text-xs text-slate-500">Live view of all officer spot check bookings, uploaded schedules, and approved inspections across all clubs.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="master-cal-club-filter" onchange="renderMasterCalendar()"
+              class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none">
+              <option value="ALL">All 14 Clubs</option>
+            </select>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="changeMasterCalendarMonth(-1)" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+              </button>
+              <span id="master-cal-month-label" class="text-sm font-bold text-navy-900 min-w-[140px] text-center">September 2026</span>
+              <button onclick="changeMasterCalendarMonth(1)" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4 py-3 text-xs text-slate-600">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-100 border border-amber-400"></span> Booked Spot Check</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-100 border border-emerald-500"></span> Approved Spot Check</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-sky-100 border border-sky-400"></span> Scheduled Training</span>
+        </div>
+
+        <div class="border border-slate-200 rounded-2xl overflow-hidden">
+          <div class="calendar-grid bg-slate-100 border-b border-slate-200 text-center py-2 text-xs font-bold text-slate-600">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div id="master-calendar-days" class="calendar-grid bg-slate-200 gap-px">
+            <!-- Master calendar days -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- SECTION 4: REPORT APPROVAL (ADMIN ONLY WITH LOGIN GATE)               -->
+    <!-- ===================================================================== -->
+    <section id="section-approval" class="hidden space-y-6">
+
+      <!-- Admin Login Card (Shown when not logged in) -->
+      <div id="admin-login-view" class="max-w-md mx-auto my-8 bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
+        <div class="bg-navy-900 px-6 py-6 text-white text-center">
+          <div class="w-12 h-12 rounded-2xl bg-pitch-500/20 text-pitch-500 border border-pitch-500/30 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+          </div>
+          <h2 class="text-xl font-bold">Admin Authentication Required</h2>
+          <p class="text-xs text-slate-300 mt-1">Sign in with authorized administrator credentials to review, approve, and export spot check reports.</p>
+        </div>
+
+        <form id="admin-login-form" class="p-6 space-y-4">
+          <div id="admin-login-error" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            Invalid email or password. Access denied.
+          </div>
+
+          <div>
+            <label for="admin-email" class="block text-sm font-semibold text-slate-700 mb-1">Admin Email</label>
+            <input type="email" id="admin-email" required placeholder="Enter admin email"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none" />
+          </div>
+
+          <div>
+            <label for="admin-password" class="block text-sm font-semibold text-slate-700 mb-1">Password</label>
+            <input type="password" id="admin-password" required placeholder="Enter admin password"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none" />
+          </div>
+
+          <button type="submit"
+            class="w-full py-2.5 rounded-xl bg-navy-900 hover:bg-slate-800 text-white text-sm font-bold shadow transition">
+            Login to Report Approval
+          </button>
+        </form>
+      </div>
+
+      <!-- Admin Dashboard (Shown ONLY after successful login) -->
+      <div id="admin-dashboard-view" class="hidden space-y-6">
+        <!-- Admin Top Bar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:px-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Report Approval &amp; Compliance Summary</h2>
+              <p class="text-xs text-slate-500">Logged in as <span class="font-semibold text-slate-700">tamkayin2012@gmail.com</span></p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="exportApprovedSummaryToExcel()"
+              class="px-4 py-2 rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white text-xs sm:text-sm font-bold shadow-sm transition flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+              Export Summary to Excel (.xlsx)
+            </button>
+            <button onclick="adminLogout()"
+              class="px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs sm:text-sm font-semibold transition">
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <!-- Pending Reports Queue -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 bg-amber-50 border-b border-amber-200/80 flex items-center justify-between">
+            <div>
+              <h3 class="text-base font-bold text-amber-950">Pending Spot Check Reports</h3>
+              <p class="text-xs text-amber-800">Review officer submissions below. Approving immediately updates the Master Table count in Spot Check Calendar.</p>
+            </div>
+            <span id="admin-pending-count-pill" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-200 text-amber-950">0 Pending</span>
+          </div>
+
+          <div id="pending-reports-list" class="p-6 space-y-4">
+            <p class="text-sm text-slate-400 italic text-center py-6">No pending spot check reports awaiting approval.</p>
+          </div>
+        </div>
+
+        <!-- Approved Summary of Two Spot Checks per Club -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 bg-navy-900 text-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h3 class="text-base font-bold">Approved Spot Check Summary (Per Club)</h3>
+              <p class="text-xs text-slate-300">Summary of Spot Check #1 &amp; Spot Check #2 for each club (Venue, Date, Time, Field Players, Goalkeepers, and Coaches).</p>
+            </div>
+            <button onclick="exportApprovedSummaryToExcel()"
+              class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition self-start sm:self-auto">
+              Download Excel Report
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 font-bold uppercase">
+                  <th class="py-3 px-4 border-r border-slate-200 min-w-[160px]">Club Name</th>
+                  <th class="py-3 px-4 border-r border-slate-200 min-w-[320px]">Spot Check #1 Details<br><span class="font-normal text-[10px] text-slate-500 normal-case">Venue, Date, Time, Players/GK, Coaches</span></th>
+                  <th class="py-3 px-4 min-w-[320px]">Spot Check #2 Details<br><span class="font-normal text-[10px] text-slate-500 normal-case">Venue, Date, Time, Players/GK, Coaches</span></th>
+                </tr>
+              </thead>
+              <tbody id="approved-summary-tbody" class="divide-y divide-slate-200">
+                <!-- Rendered dynamically for all 14 clubs -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <span>Youth Elite Clubs Monitoring System &bull; 14 Participating Clubs (2026–2027)</span>
+      <button onclick="openResetConfirmModal()" class="text-slate-400 hover:text-rose-600 underline transition">
+        Reset All Data to 0
+      </button>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: OFFICER SPOT CHECK DATE BOOKING (ON CLUB CALENDAR)             -->
+  <!-- ===================================================================== -->
+  <div id="booking-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden">
+      <div class="bg-navy-900 px-5 py-4 text-white flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold">Select Spot Check Date</h3>
+          <p id="booking-modal-subtitle" class="text-xs text-slate-300">Club &bull; Date</p>
+        </div>
+        <button onclick="closeBookingModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Existing Training Sessions on this date -->
+        <div id="booking-modal-sessions" class="bg-sky-50 border border-sky-200 rounded-xl p-3 text-xs text-sky-900 hidden"></div>
+
+        <!-- Existing Bookings on this date -->
+        <div id="booking-modal-existing" class="space-y-2"></div>
+
+        <form id="booking-form" class="space-y-3 pt-1">
+          <div>
+            <label for="booking-officer-name" class="block text-xs font-bold text-slate-700 mb-1">Spot Check Officer Name <span class="text-rose-500">*</span></label>
+            <input type="text" id="booking-officer-name" required placeholder="Insert your name"
+              class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-pitch-500 focus:ring-2 focus:ring-pitch-500/20 outline-none" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="booking-age-group" class="block text-xs font-bold text-slate-700 mb-1">Age Group</label>
+              <select id="booking-age-group" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="U14">U14</option>
+                <option value="U16">U16</option>
+                <option value="U18">U18</option>
+              </select>
+            </div>
+            <div>
+              <label for="booking-time" class="block text-xs font-bold text-slate-700 mb-1">Time / Session Note</label>
+              <input type="text" id="booking-time" placeholder="e.g., 19:30"
+                class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2 pt-2">
+            <button type="button" onclick="closeBookingModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white text-xs font-bold shadow">
+              Confirm Spot Check Booking
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: PHOTO LIGHTBOX PREVIEW                                         -->
+  <!-- ===================================================================== -->
+  <div id="photo-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 flex items-center justify-center p-4" onclick="closePhotoModal()">
+    <div class="max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl" onclick="event.stopPropagation()">
+      <div class="px-4 py-3 bg-navy-900 text-white flex items-center justify-between">
+        <span id="photo-modal-caption" class="text-xs font-semibold">Training Photo</span>
+        <button onclick="closePhotoModal()" class="text-slate-300 hover:text-white text-xs font-bold px-2 py-1 rounded bg-slate-800">Close</button>
+      </div>
+      <div class="p-2 bg-slate-900 flex items-center justify-center max-h-[80vh]">
+        <img id="photo-modal-img" src="" alt="Training inspection" class="max-h-[75vh] w-auto object-contain rounded-lg" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- MODAL: CUSTOM CONFIRMATION FOR RESETTING DATA                         -->
+  <!-- ===================================================================== -->
+  <div id="reset-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-sm w-full p-6 space-y-4">
+      <h3 class="text-base font-bold text-slate-900">Reset All Monitoring Data?</h3>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        This will permanently clear all uploaded schedules, officer bookings, pending submissions, and approved spot check reports, returning every club count back to <strong>0</strong>.
+      </p>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeResetConfirmModal()" class="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+          Cancel
+        </button>
+        <button onclick="executeResetAllData()" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold">
+          Yes, Reset to 0
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT                                                -->
+  <!-- ===================================================================== -->
+  <script>
+    // Configure PDF.js worker if available
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    // 1. CONSTANTS & CONFIGURATION
+    const CLUBS = [
+      "Eastern",
+      "EDSA",
+      "Hong Kong Football Club",
+      "Kitchee",
+      "Konter",
+      "Kowloon City",
+      "Kowloon Cricket Club",
+      "Lee Man",
+      "Lucky Mile",
+      "Rangers",
+      "South China",
+      "Southern",
+      "Tai Po",
+      "Yuen Long"
+    ];
+
+    const STAFF_ROLES = [
+      { id: "headCoach", label: "Head Coach" },
+      { id: "assistantCoach", label: "Assistant Coach" },
+      { id: "gkLeadCoach", label: "Academy Goalkeeping Lead Coach" },
+      { id: "physicalLeadCoach", label: "Academy Physical Lead Coach" }
+    ];
+
+    const ADMIN_EMAIL = "tamkayin2012@gmail.com";
+    const ADMIN_PASS = "TT@0805!";
+    const STORAGE_KEY = "yec_monitoring_system_v1";
+
+    // 2. APPLICATION STATE (Strictly empty and 0 at the beginning)
+    function getEmptyState() {
+      const schedules = {};
+      CLUBS.forEach(club => {
+        schedules[club] = {
+          files: [],    // { id, name, type, uploadedAt, sessionCount }
+          sessions: []  // { id, date (YYYY-MM-DD), ageGroup, time, venue, source }
+        };
+      });
+      return {
+        schedules,
+        bookings: [],       // { id, club, date, officerName, ageGroup, time, createdAt }
+        pendingReports: [], // { id, club, date, ageGroup, venue, trainingTime, spotCheckTime, fieldPlayers, goalkeepers, officerName, staff: {}, remarks, photos: [], submittedAt }
+        approvedReports: [] // same structure + approvedAt, period (1 or 2)
+      };
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return getEmptyState();
+        const parsed = JSON.parse(raw);
+        // Ensure all 14 clubs exist in schedules
+        const base = getEmptyState();
+        CLUBS.forEach(club => {
+          if (parsed.schedules && parsed.schedules[club]) {
+            base.schedules[club] = {
+              files: parsed.schedules[club].files || [],
+              sessions: parsed.schedules[club].sessions || []
+            };
+          }
+        });
+        base.bookings = Array.isArray(parsed.bookings) ? parsed.bookings : [];
+        base.pendingReports = Array.isArray(parsed.pendingReports) ? parsed.pendingReports : [];
+        base.approvedReports = Array.isArray(parsed.approvedReports) ? parsed.approvedReports : [];
+        return base;
+      } catch (e) {
+        console.error("Failed to load state:", e);
+        return getEmptyState();
+      }
+    }
+
+    let appState = loadState();
+    let isAdminLoggedIn = sessionStorage.getItem("yec_admin_auth") === "true";
+    let activeSection = "submission";
+    let selectedScheduleClub = CLUBS[0];
+    // Default calendars to September 2026 (start of 1st Funding Period)
+    let clubCalendarYear = 2026;
+    let clubCalendarMonth = 8; // 0-indexed: 8 = September
+    let masterCalendarYear = 2026;
+    let masterCalendarMonth = 8;
+    let currentBookingTarget = { club: null, date: null };
+    let uploadedPhotoDataUrls = [];
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        showToast("Storage limit reached. Try attaching fewer/smaller photos.", "error");
+      }
+      refreshAllViews();
+    }
+
+    // Listen for real-time updates across multiple browser tabs
+    window.addEventListener("storage", (e) => {
+      if (e.key === STORAGE_KEY) {
+        appState = loadState();
+        refreshAllViews();
+      }
+    });
+
+    // 3. INITIALIZATION
+    document.addEventListener("DOMContentLoaded", () => {
+      populateClubDropdowns();
+      renderStaffAttendanceFields();
+      renderClubSelectorPills();
+      setupEventListeners();
+      refreshAllViews();
+    });
+
+    function populateClubDropdowns() {
+      const reportClubSelect = document.getElementById("report-club");
+      const masterFilterSelect = document.getElementById("master-cal-club-filter");
+
+      CLUBS.forEach(club => {
+        const opt1 = document.createElement("option");
+        opt1.value = club;
+        opt1.textContent = club;
+        reportClubSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = club;
+        opt2.textContent = club;
+        masterFilterSelect.appendChild(opt2);
+      });
+    }
+
+    function renderStaffAttendanceFields() {
+      const container = document.getElementById("staff-attendance-container");
+      container.innerHTML = STAFF_ROLES.map(role => `
+        <div class="bg-white rounded-xl p-3.5 border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <span class="text-sm font-semibold text-slate-800">${role.label}</span>
+          <div class="flex items-center gap-4">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-emerald-700">
+              <input type="checkbox" name="staff_${role.id}" value="Attended"
+                onchange="handleExclusiveStaffCheckbox(this, '${role.id}')"
+                class="w-4 h-4 rounded border-slate-300 text-pitch-600 focus:ring-pitch-500" />
+              <span>Attended</span>
+            </label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-rose-700">
+              <input type="checkbox" name="staff_${role.id}" value="Not attended"
+                onchange="handleExclusiveStaffCheckbox(this, '${role.id}')"
+                class="w-4 h-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500" />
+              <span>Not attended</span>
+            </label>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Mutually exclusive checkbox helper so user uses checkboxes cleanly
+    function handleExclusiveStaffCheckbox(checkbox, roleId) {
+      if (checkbox.checked) {
+        const group = document.querySelectorAll(`input[name="staff_${roleId}"]`);
+        group.forEach(cb => {
+          if (cb !== checkbox) cb.checked = false;
+        });
+      }
+    }
+
+    function setupEventListeners() {
+      // Spot Check Report Form Submission
+      document.getElementById("spot-check-form").addEventListener("submit", handleReportSubmit);
+
+      // Date input hint for Funding Period
+      document.getElementById("report-date").addEventListener("change", (e) => {
+        const period = determineFundingPeriod(e.target.value);
+        const hint = document.getElementById("funding-period-hint");
+        if (period === 1) {
+          hint.innerHTML = `<span class="text-pitch-700 font-semibold">✓ Matches 1st Funding Period (Sep 2026 – Jan 2027)</span>`;
+        } else if (period === 2) {
+          hint.innerHTML = `<span class="text-sky-700 font-semibold">✓ Matches 2nd Funding Period (Feb 2027 – Jun 2027)</span>`;
+        } else {
+          hint.innerHTML = `<span class="text-amber-600 font-semibold">Note: Date is outside Sep 2026–Jun 2027 funding windows.</span>`;
+        }
+      });
+
+      // Officer Booking Modal Form
+      document.getElementById("booking-form").addEventListener("submit", handleBookingSubmit);
+
+      // Admin Login Form
+      document.getElementById("admin-login-form").addEventListener("submit", handleAdminLogin);
+    }
+
+    // 4. NAVIGATION
+    function switchSection(sectionName) {
+      activeSection = sectionName;
+      const sections = ["submission", "schedule", "calendar", "approval"];
+      sections.forEach(sec => {
+        const el = document.getElementById(`section-${sec}`);
+        const btn = document.getElementById(`nav-${sec}`);
+        if (sec === sectionName) {
+          el.classList.remove("hidden");
+          btn.classList.remove("text-slate-300", "hover:text-white", "hover:bg-slate-800");
+          btn.classList.add("bg-pitch-500", "text-white", "shadow-sm");
+        } else {
+          el.classList.add("hidden");
+          btn.classList.add("text-slate-300", "hover:text-white", "hover:bg-slate-800");
+          btn.classList.remove("bg-pitch-500", "text-white", "shadow-sm");
+        }
+      });
+
+      if (sectionName === "approval") {
+        updateAdminAuthView();
+      }
+      refreshAllViews();
+    }
+
+    // 5. FUNDING PERIOD CLASSIFICATION
+    // 1st Funding Period: September 2026 – January 2027 (2026-09-01 to 2027-01-31)
+    // 2nd Funding Period: February 2027 – June 2027 (2027-02-01 to 2027-06-30)
+    function determineFundingPeriod(dateStr) {
+      if (!dateStr) return null;
+      if (dateStr >= "2026-09-01" && dateStr <= "2027-01-31") return 1;
+      if (dateStr >= "2027-02-01" && dateStr <= "2027-06-30") return 2;
+      return 0; // Outside standard window
+    }
+
+    // 6. SECTION 1: SPOT CHECK REPORT SUBMISSION LOGIC
+    function handlePhotoUpload(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+
+      files.forEach(file => {
+        if (!file.type.startsWith("image/")) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Compress image via canvas so multiple photos easily fit in localStorage
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxDim = 800;
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.72);
+            uploadedPhotoDataUrls.push({
+              name: file.name,
+              dataUrl: compressedDataUrl
+            });
+            renderPhotoPreviews();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPhotoPreviews() {
+      const grid = document.getElementById("photo-preview-grid");
+      grid.innerHTML = uploadedPhotoDataUrls.map((photo, idx) => `
+        <div class="relative group rounded-xl overflow-hidden border border-slate-200 aspect-square bg-slate-100">
+          <img src="${photo.dataUrl}" alt="${escapeHtml(photo.name)}" class="w-full h-full object-cover" />
+          <button type="button" onclick="removeUploadedPhoto(${idx})"
+            class="absolute top-1 right-1 w-6 h-6 rounded-full bg-rose-600 text-white text-xs font-bold flex items-center justify-center opacity-90 hover:opacity-100 shadow">
+            &times;
+          </button>
+        </div>
+      `).join("");
+    }
+
+    function removeUploadedPhoto(index) {
+      uploadedPhotoDataUrls.splice(index, 1);
+      renderPhotoPreviews();
+    }
+
+    function handleReportSubmit(e) {
+      e.preventDefault();
+
+      const club = document.getElementById("report-club").value;
+      const date = document.getElementById("report-date").value;
+      const ageGroupInput = document.querySelector('input[name="ageGroup"]:checked');
+      const venue = document.getElementById("report-venue").value.trim();
+      const trainingTime = document.getElementById("report-training-time").value.trim();
+      const spotCheckTime = document.getElementById("report-spotcheck-time").value.trim();
+      const fieldPlayers = document.getElementById("report-field-players").value.trim();
+      const goalkeepers = document.getElementById("report-goalkeepers").value.trim();
+      const officerName = document.getElementById("report-officer-name").value.trim();
+      const remarks = document.getElementById("report-remarks").value.trim();
+
+      if (!club || !date || !ageGroupInput || !venue || !trainingTime || !spotCheckTime || !fieldPlayers || !goalkeepers || !officerName) {
+        showToast("Please complete all required fields before submitting.", "error");
+        return;
+      }
+
+      // Validate staff checkboxes
+      const staffData = {};
+      for (const role of STAFF_ROLES) {
+        const checked = document.querySelector(`input[name="staff_${role.id}"]:checked`);
+        if (!checked) {
+          showToast(`Please select Attended or Not attended for ${role.label}.`, "error");
+          return;
+        }
+        staffData[role.id] = checked.value;
+      }
+
+      const newReport = {
+        id: "rep_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+        club,
+        date,
+        ageGroup: ageGroupInput.value,
+        venue,
+        trainingTime,
+        spotCheckTime,
+        fieldPlayers,
+        goalkeepers,
+        officerName,
+        staff: staffData,
+        remarks,
+        photos: [...uploadedPhotoDataUrls],
+        submittedAt: new Date().toLocaleString()
+      };
+
+      appState.pendingReports.unshift(newReport);
+      saveState();
+      resetSubmissionForm();
+      showToast(`Spot Check Report for ${club} (${date}) sent to Report Approval queue!`, "success");
+    }
+
+    function resetSubmissionForm() {
+      document.getElementById("spot-check-form").reset();
+      uploadedPhotoDataUrls = [];
+      renderPhotoPreviews();
+      document.getElementById("funding-period-hint").textContent = "1st Period: Sep 2026–Jan 2027 | 2nd Period: Feb 2027–Jun 2027";
+    }
+
+    // 7. SECTION 2: TRAINING SCHEDULE UPLOAD & PARSING (EXCEL, WORD, PDF)
+    function renderClubSelectorPills() {
+      const container = document.getElementById("club-selector-pills");
+      container.innerHTML = CLUBS.map(club => {
+        const isSelected = club === selectedScheduleClub;
+        const sessionCount = appState.schedules[club]?.sessions.length || 0;
+        const bookingCount = appState.bookings.filter(b => b.club === club).length;
+        return `
+          <button type="button" onclick="selectScheduleClub('${club.replace(/'/g, "\\'")}')"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 border ${
+              isSelected
+                ? "bg-navy-900 text-white border-navy-900 shadow-xs"
+                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+            }">
+            <span>${club}</span>
+            ${(sessionCount > 0 || bookingCount > 0)
+              ? `<span class="px-1.5 py-0.2 rounded-full text-[10px] ${isSelected ? 'bg-pitch-500 text-white' : 'bg-slate-200 text-slate-700'}">${sessionCount + bookingCount}</span>`
+              : ""}
+          </button>
+        `;
+      }).join("");
+    }
+
+    function selectScheduleClub(club) {
+      selectedScheduleClub = club;
+      document.getElementById("selected-club-pill").textContent = club;
+      document.getElementById("upload-club-name").textContent = club;
+      document.getElementById("cal-club-heading").textContent = club;
+      renderClubSelectorPills();
+      renderSelectedClubScheduleDetails();
+      renderClubCalendar();
+    }
+
+    async function handleScheduleFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const ext = file.name.split(".").pop().toLowerCase();
+      let extractedSessions = [];
+
+      try {
+        if (["xlsx", "xls", "csv"].includes(ext)) {
+          extractedSessions = await parseExcelSchedule(file);
+        } else if (["docx", "doc"].includes(ext)) {
+          extractedSessions = await parseWordSchedule(file);
+        } else if (ext === "pdf") {
+          extractedSessions = await parsePdfSchedule(file);
+        } else {
+          showToast("Unsupported format. Please upload Excel, Word, or PDF.", "error");
+          event.target.value = "";
+          return;
+        }
+      } catch (err) {
+        console.error("File parsing error:", err);
+        showToast("File uploaded, though automatic date extraction encountered formatting limits. You can also add dates manually.", "error");
+      }
+
+      const clubData = appState.schedules[selectedScheduleClub];
+      const fileRecord = {
+        id: "file_" + Date.now(),
+        name: file.name,
+        type: ext.toUpperCase(),
+        uploadedAt: new Date().toLocaleDateString(),
+        sessionCount: extractedSessions.length
+      };
+      clubData.files.unshift(fileRecord);
+
+      // Deduplicate & merge extracted sessions
+      extractedSessions.forEach(sess => {
+        const exists = clubData.sessions.some(
+          s => s.date === sess.date && s.ageGroup === sess.ageGroup && s.time === sess.time
+        );
+        if (!exists) {
+          clubData.sessions.push({
+            id: "sess_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+            date: sess.date,
+            ageGroup: sess.ageGroup || "Training",
+            time: sess.time || "",
+            venue: sess.venue || "",
+            source: file.name
+          });
+        }
+      });
+
+      // If dates were found, jump calendar to the first extracted month so user sees instant population
+      if (extractedSessions.length > 0) {
+        const sorted = [...extractedSessions].sort((a, b) => a.date.localeCompare(b.date));
+        const [y, m] = sorted[0].date.split("-").map(Number);
+        if (y && m) {
+          clubCalendarYear = y;
+          clubCalendarMonth = m - 1;
+        }
+        showToast(`Uploaded "${file.name}" and auto-filled ${extractedSessions.length} training date(s) onto the calendar!`, "success");
+      } else {
+        showToast(`Uploaded "${file.name}". No standard YYYY-MM-DD / DD/MM/YYYY dates detected inside text—use "+ Add Single Training Date" if needed.`, "info");
+      }
+
+      event.target.value = "";
+      saveState();
+    }
+
+    // Parse Excel/CSV with SheetJS
+    function parseExcelSchedule(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: "array", cellDates: true });
+            const sessions = [];
+
+            workbook.SheetNames.forEach(sheetName => {
+              const sheet = workbook.Sheets[sheetName];
+              const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+              rows.forEach(row => {
+                let foundDate = null;
+                let foundAge = "";
+                let foundTime = "";
+                let foundVenue = "";
+
+                row.forEach(cell => {
+                  if (cell instanceof Date && !isNaN(cell)) {
+                    foundDate = formatDateObjToISO(cell);
+                  } else if (typeof cell === "number" && cell > 44000 && cell < 50000) {
+                    // Excel serial date
+                    const d = new Date(Math.round((cell - 25569) * 86400 * 1000));
+                    if (!isNaN(d)) foundDate = formatDateObjToISO(d);
+                  } else {
+                    const str = String(cell).trim();
+                    if (!str) return;
+                    const iso = extractFirstDateFromText(str);
+                    if (iso && !foundDate) foundDate = iso;
+                    if (/\b(U14|U16|U18)\b/i.test(str)) {
+                      foundAge = str.match(/\b(U14|U16|U18)\b/i)[1].toUpperCase();
+                    }
+                    if (/\b\d{1,2}:\d{2}\s*[-–to]+\s*\d{1,2}:\d{2}\b/i.test(str) || /\b\d{1,2}:\d{2}\b/.test(str)) {
+                      if (!foundTime) foundTime = str;
+                    } else if (!iso && str.length > 3 && !/^(date|time|venue|age|group|club|day)$/i.test(str)) {
+                      if (!foundVenue) foundVenue = str;
+                    }
+                  }
+                });
+
+                if (foundDate) {
+                  sessions.push({
+                    date: foundDate,
+                    ageGroup: foundAge || "Training",
+                    time: foundTime,
+                    venue: foundVenue
+                  });
+                }
+              });
+            });
+
+            resolve(sessions);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    // Parse Word (.docx) via Mammoth.js
+    function parseWordSchedule(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            if (window.mammoth) {
+              const result = await mammoth.extractRawText({ arrayBuffer: e.target.result });
+              resolve(extractSessionsFromFreeText(result.value || ""));
+            } else {
+              resolve([]);
+            }
+          } catch {
+            resolve([]);
+          }
+        };
+        reader.onerror = () => resolve([]);
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    // Parse PDF via PDF.js
+    function parsePdfSchedule(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            if (window.pdfjsLib) {
+              const typedarray = new Uint8Array(e.target.result);
+              const pdf = await pdfjsLib.getDocument({ data: typedarray }).promise;
+              let fullText = "";
+              for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                fullText += content.items.map(item => item.str).join(" ") + "\n";
+              }
+              resolve(extractSessionsFromFreeText(fullText));
+            } else {
+              resolve([]);
+            }
+          } catch {
+            resolve([]);
+          }
+        };
+        reader.onerror = () => resolve([]);
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    // Extract dates (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY) from unstructured text
+    function extractSessionsFromFreeText(text) {
+      const sessions = [];
+      const lines = text.split(/\r?\n/);
+      lines.forEach(line => {
+        const dates = extractAllDatesFromText(line);
+        const ageMatch = line.match(/\b(U14|U16|U18)\b/i);
+        const timeMatch = line.match(/\b\d{1,2}:\d{2}\s*(?:[-–]\s*\d{1,2}:\d{2})?\b/);
+        dates.forEach(d => {
+          sessions.push({
+            date: d,
+            ageGroup: ageMatch ? ageMatch[1].toUpperCase() : "Training",
+            time: timeMatch ? timeMatch[0] : "",
+            venue: ""
+          });
+        });
+      });
+      return sessions;
+    }
+
+    function extractFirstDateFromText(str) {
+      const all = extractAllDatesFromText(str);
+      return all.length ? all[0] : null;
+    }
+
+    function extractAllDatesFromText(str) {
+      const results = [];
+      // Match YYYY-MM-DD or YYYY/MM/DD
+      const isoRegex = /\b(202[5-8])[-/](\d{1,2})[-/](\d{1,2})\b/g;
+      let m;
+      while ((m = isoRegex.exec(str)) !== null) {
+        const y = m[1];
+        const mo = m[2].padStart(2, "0");
+        const da = m[3].padStart(2, "0");
+        if (Number(mo) >= 1 && Number(mo) <= 12 && Number(da) >= 1 && Number(da) <= 31) {
+          results.push(`${y}-${mo}-${da}`);
+        }
+      }
+      // Match DD/MM/YYYY or DD-MM-YYYY
+      const dmyRegex = /\b(\d{1,2})[-/](\d{1,2})[-/](202[5-8])\b/g;
+      while ((m = dmyRegex.exec(str)) !== null) {
+        const da = m[1].padStart(2, "0");
+        const mo = m[2].padStart(2, "0");
+        const y = m[3];
+        if (Number(mo) >= 1 && Number(mo) <= 12 && Number(da) >= 1 && Number(da) <= 31) {
+          const formatted = `${y}-${mo}-${da}`;
+          if (!results.includes(formatted)) results.push(formatted);
+        }
+      }
+      return results;
+    }
+
+    function formatDateObjToISO(dateObj) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const d = String(dateObj.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function addManualTrainingSession() {
+      const date = document.getElementById("manual-session-date").value;
+      const ageGroup = document.getElementById("manual-session-age").value;
+      const time = document.getElementById("manual-session-time").value.trim();
+      const venue = document.getElementById("manual-session-venue").value.trim();
+
+      if (!date) {
+        showToast("Please select a training date.", "error");
+        return;
+      }
+
+      appState.schedules[selectedScheduleClub].sessions.push({
+        id: "sess_" + Date.now(),
+        date,
+        ageGroup,
+        time,
+        venue,
+        source: "Manual Entry"
+      });
+
+      const [y, m] = date.split("-").map(Number);
+      clubCalendarYear = y;
+      clubCalendarMonth = m - 1;
+
+      document.getElementById("manual-session-date").value = "";
+      document.getElementById("manual-session-time").value = "";
+      document.getElementById("manual-session-venue").value = "";
+
+      saveState();
+      showToast(`Added training session on ${date} for ${selectedScheduleClub}.`, "success");
+    }
+
+    function removeTrainingSession(sessionId) {
+      const clubData = appState.schedules[selectedScheduleClub];
+      clubData.sessions = clubData.sessions.filter(s => s.id !== sessionId);
+      saveState();
+    }
+
+    function removeUploadedFile(fileId) {
+      const clubData = appState.schedules[selectedScheduleClub];
+      const target = clubData.files.find(f => f.id === fileId);
+      clubData.files = clubData.files.filter(f => f.id !== fileId);
+      if (target) {
+        clubData.sessions = clubData.sessions.filter(s => s.source !== target.name);
+      }
+      saveState();
+    }
+
+    function renderSelectedClubScheduleDetails() {
+      const clubData = appState.schedules[selectedScheduleClub];
+      document.getElementById("club-files-count").textContent = `${clubData.files.length} file${clubData.files.length === 1 ? "" : "s"}`;
+      document.getElementById("club-sessions-count").textContent = `${clubData.sessions.length} session${clubData.sessions.length === 1 ? "" : "s"}`;
+
+      const filesList = document.getElementById("club-uploaded-files-list");
+      if (clubData.files.length === 0) {
+        filesList.innerHTML = `<p class="text-xs text-slate-400 italic py-4 text-center">No schedule files uploaded yet for this club.</p>`;
+      } else {
+        filesList.innerHTML = clubData.files.map(f => `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <div class="truncate pr-2">
+              <p class="font-semibold text-slate-800 truncate">${escapeHtml(f.name)}</p>
+              <p class="text-[11px] text-slate-500">${f.type} &bull; ${f.uploadedAt} &bull; ${f.sessionCount} dates</p>
+            </div>
+            <button onclick="removeUploadedFile('${f.id}')" class="text-slate-400 hover:text-rose-600 font-bold px-1.5" title="Remove file">&times;</button>
+          </div>
+        `).join("");
+      }
+
+      const sessionsList = document.getElementById("club-sessions-list");
+      if (clubData.sessions.length === 0) {
+        sessionsList.innerHTML = `<p class="text-xs text-slate-400 italic py-3 text-center">Calendar is currently empty.</p>`;
+      } else {
+        const sorted = [...clubData.sessions].sort((a, b) => a.date.localeCompare(b.date));
+        sessionsList.innerHTML = sorted.map(s => `
+          <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-sky-50/70 border border-sky-200/70 text-xs">
+            <div>
+              <span class="font-bold text-sky-900">${s.date}</span>
+              <span class="ml-1.5 px-1.5 py-0.2 rounded bg-sky-200/70 text-sky-900 text-[10px] font-semibold">${escapeHtml(s.ageGroup)}</span>
+              ${s.time ? `<span class="text-slate-600 ml-1">${escapeHtml(s.time)}</span>` : ""}
+            </div>
+            <button onclick="removeTrainingSession('${s.id}')" class="text-slate-400 hover:text-rose-600 font-bold px-1">&times;</button>
+          </div>
+        `).join("");
+      }
+    }
+
+    // 8. CLUB CALENDAR & OFFICER BOOKING
+    function changeClubCalendarMonth(delta) {
+      clubCalendarMonth += delta;
+      if (clubCalendarMonth < 0) {
+        clubCalendarMonth = 11;
+        clubCalendarYear--;
+      } else if (clubCalendarMonth > 11) {
+        clubCalendarMonth = 0;
+        clubCalendarYear++;
+      }
+      renderClubCalendar();
+    }
+
+    function renderClubCalendar() {
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById("club-cal-month-label").textContent = `${monthNames[clubCalendarMonth]} ${clubCalendarYear}`;
+
+      const firstDay = new Date(clubCalendarYear, clubCalendarMonth, 1).getDay();
+      const daysInMonth = new Date(clubCalendarYear, clubCalendarMonth + 1, 0).getDate();
+
+      const clubSessions = appState.schedules[selectedScheduleClub]?.sessions || [];
+      const clubBookings = appState.bookings.filter(b => b.club === selectedScheduleClub);
+      const clubApproved = appState.approvedReports.filter(r => r.club === selectedScheduleClub);
+
+      let html = "";
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div class="bg-slate-50 min-h-[88px] sm:min-h-[100px] p-1.5"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${clubCalendarYear}-${String(clubCalendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const daySessions = clubSessions.filter(s => s.date === dateStr);
+        const dayBookings = clubBookings.filter(b => b.date === dateStr);
+        const dayApproved = clubApproved.filter(r => r.date === dateStr);
+
+        html += `
+          <div onclick="openBookingModal('${selectedScheduleClub.replace(/'/g, "\\'")}', '${dateStr}')"
+            class="bg-white hover:bg-emerald-50/50 cursor-pointer min-h-[88px] sm:min-h-[100px] p-1.5 transition flex flex-col justify-between group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold ${daySessions.length || dayBookings.length ? 'text-navy-900' : 'text-slate-500'}">${day}</span>
+              <span class="opacity-0 group-hover:opacity-100 text-[10px] font-semibold text-pitch-600 transition">+ Book</span>
+            </div>
+            <div class="space-y-1 mt-1 overflow-y-auto max-h-[72px]">
+              ${daySessions.map(s => `
+                <div class="px-1.5 py-0.5 rounded bg-sky-100 border border-sky-300 text-sky-900 text-[10px] leading-tight truncate" title="${escapeHtml(s.ageGroup)} ${escapeHtml(s.time)}">
+                  <strong>${escapeHtml(s.ageGroup)}</strong> ${escapeHtml(s.time)}
+                </div>
+              `).join("")}
+              ${dayBookings.map(b => `
+                <div class="px-1.5 py-0.5 rounded bg-amber-100 border border-amber-400 text-amber-950 text-[10px] leading-tight truncate" title="Spot Check: ${escapeHtml(b.officerName)}">
+                  <strong>Check:</strong> ${escapeHtml(b.officerName)}
+                </div>
+              `).join("")}
+              ${dayApproved.map(a => `
+                <div class="px-1.5 py-0.5 rounded bg-emerald-100 border border-emerald-500 text-emerald-950 text-[10px] leading-tight truncate">
+                  ✓ Approved (${escapeHtml(a.ageGroup)})
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById("club-calendar-days").innerHTML = html;
+    }
+
+    function openBookingModal(club, dateStr) {
+      currentBookingTarget = { club, date: dateStr };
+      document.getElementById("booking-modal-subtitle").textContent = `${club} • ${dateStr}`;
+      document.getElementById("booking-officer-name").value = "";
+      document.getElementById("booking-time").value = "";
+
+      // Show scheduled sessions for that day
+      const sessions = (appState.schedules[club]?.sessions || []).filter(s => s.date === dateStr);
+      const sessBox = document.getElementById("booking-modal-sessions");
+      if (sessions.length > 0) {
+        sessBox.classList.remove("hidden");
+        sessBox.innerHTML = `<strong>Scheduled Training on this date:</strong><ul class="list-disc ml-4 mt-1">${sessions.map(s => `<li>${escapeHtml(s.ageGroup)} ${s.time ? `(${escapeHtml(s.time)})` : ""} ${s.venue ? `- ${escapeHtml(s.venue)}` : ""}</li>`).join("")}</ul>`;
+      } else {
+        sessBox.classList.add("hidden");
+      }
+
+      // Show existing officer bookings for that day with delete option
+      const existing = appState.bookings.filter(b => b.club === club && b.date === dateStr);
+      const existingBox = document.getElementById("booking-modal-existing");
+      if (existing.length > 0) {
+        existingBox.innerHTML = `
+          <p class="text-xs font-bold text-slate-700">Current Spot Check Bookings:</p>
+          ${existing.map(b => `
+            <div class="flex items-center justify-between px-3 py-2 rounded-xl bg-amber-50 border border-amber-300 text-xs">
+              <div>
+                <span class="font-bold text-amber-950">${escapeHtml(b.officerName)}</span>
+                <span class="text-amber-800 ml-1">(${escapeHtml(b.ageGroup)}${b.time ? `, ${escapeHtml(b.time)}` : ""})</span>
+              </div>
+              <button type="button" onclick="deleteBooking('${b.id}')" class="text-rose-600 hover:underline font-semibold">Remove</button>
+            </div>
+          `).join("")}
+        `;
+      } else {
+        existingBox.innerHTML = "";
+      }
+
+      document.getElementById("booking-modal").classList.remove("hidden");
+    }
+
+    function closeBookingModal() {
+      document.getElementById("booking-modal").classList.add("hidden");
+    }
+
+    function handleBookingSubmit(e) {
+      e.preventDefault();
+      const officerName = document.getElementById("booking-officer-name").value.trim();
+      const ageGroup = document.getElementById("booking-age-group").value;
+      const time = document.getElementById("booking-time").value.trim();
+
+      if (!officerName || !currentBookingTarget.club || !currentBookingTarget.date) return;
+
+      appState.bookings.push({
+        id: "book_" + Date.now(),
+        club: currentBookingTarget.club,
+        date: currentBookingTarget.date,
+        officerName,
+        ageGroup,
+        time,
+        createdAt: new Date().toISOString()
+      });
+
+      saveState();
+      closeBookingModal();
+      showToast(`Spot Check booked for ${currentBookingTarget.club} on ${currentBookingTarget.date} (${officerName})!`, "success");
+    }
+
+    function deleteBooking(bookingId) {
+      appState.bookings = appState.bookings.filter(b => b.id !== bookingId);
+      saveState();
+      if (currentBookingTarget.club && currentBookingTarget.date) {
+        openBookingModal(currentBookingTarget.club, currentBookingTarget.date);
+      }
+      showToast("Spot Check booking removed.", "info");
+    }
+
+    // 9. SECTION 3: MASTER TABLE & MASTER SPOT CHECK CALENDAR
+    function renderMasterComplianceTable() {
+      const tbody = document.getElementById("master-compliance-tbody");
+      let totalP1 = 0;
+      let totalP2 = 0;
+
+      tbody.innerHTML = CLUBS.map((club, index) => {
+        const clubApproved = appState.approvedReports.filter(r => r.club === club);
+        const p1Count = clubApproved.filter(r => determineFundingPeriod(r.date) === 1).length;
+        const p2Count = clubApproved.filter(r => determineFundingPeriod(r.date) === 2).length;
+        const totalCount = clubApproved.length;
+        const bookedCount = appState.bookings.filter(b => b.club === club).length;
+
+        totalP1 += p1Count;
+        totalP2 += p2Count;
+
+        const p1BadgeClass = p1Count >= 2
+          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+          : p1Count === 1
+            ? "bg-amber-100 text-amber-800 border-amber-300"
+            : "bg-slate-100 text-slate-600 border-slate-200";
+
+        const p2BadgeClass = p2Count >= 2
+          ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+          : p2Count === 1
+            ? "bg-amber-100 text-amber-800 border-amber-300"
+            : "bg-slate-100 text-slate-600 border-slate-200";
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-semibold text-slate-400">${index + 1}</td>
+            <td class="py-3 px-4 font-bold text-slate-900">${club}</td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${p1BadgeClass}">
+                ${p1Count} / 2
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${p2BadgeClass}">
+                ${p2Count} / 2
+              </span>
+            </td>
+            <td class="py-3 px-4 font-extrabold text-navy-900">${totalCount}</td>
+            <td class="py-3 px-4">
+              <span class="text-xs font-semibold ${bookedCount > 0 ? 'text-amber-700' : 'text-slate-400'}">${bookedCount} booked</span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("kpi-booked-count").textContent = appState.bookings.length;
+      document.getElementById("kpi-p1-count").innerHTML = `${totalP1} <span class="text-xs font-normal text-slate-400">/ 28 target</span>`;
+      document.getElementById("kpi-p2-count").innerHTML = `${totalP2} <span class="text-xs font-normal text-slate-400">/ 28 target</span>`;
+    }
+
+    function changeMasterCalendarMonth(delta) {
+      masterCalendarMonth += delta;
+      if (masterCalendarMonth < 0) {
+        masterCalendarMonth = 11;
+        masterCalendarYear--;
+      } else if (masterCalendarMonth > 11) {
+        masterCalendarMonth = 0;
+        masterCalendarYear++;
+      }
+      renderMasterCalendar();
+    }
+
+    function renderMasterCalendar() {
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById("master-cal-month-label").textContent = `${monthNames[masterCalendarMonth]} ${masterCalendarYear}`;
+
+      const clubFilter = document.getElementById("master-cal-club-filter").value;
+      const firstDay = new Date(masterCalendarYear, masterCalendarMonth, 1).getDay();
+      const daysInMonth = new Date(masterCalendarYear, masterCalendarMonth + 1, 0).getDate();
+
+      let html = "";
+      for (let i = 0; i < firstDay; i++) {
+        html += `<div class="bg-slate-50 min-h-[96px] p-1.5"></div>`;
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${masterCalendarYear}-${String(masterCalendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+        const dayBookings = appState.bookings.filter(b => b.date === dateStr && (clubFilter === "ALL" || b.club === clubFilter));
+        const dayApproved = appState.approvedReports.filter(r => r.date === dateStr && (clubFilter === "ALL" || r.club === clubFilter));
+
+        // Gather scheduled training across clubs
+        const daySchedules = [];
+        CLUBS.forEach(c => {
+          if (clubFilter !== "ALL" && c !== clubFilter) return;
+          (appState.schedules[c]?.sessions || []).forEach(s => {
+            if (s.date === dateStr) daySchedules.push({ club: c, ...s });
+          });
+        });
+
+        html += `
+          <div class="bg-white min-h-[96px] p-1.5 flex flex-col">
+            <span class="text-xs font-bold text-slate-600 mb-1">${day}</span>
+            <div class="space-y-1 overflow-y-auto max-h-[82px]">
+              ${dayApproved.map(a => `
+                <div class="px-1.5 py-0.5 rounded bg-emerald-100 border border-emerald-500 text-emerald-950 text-[10px] leading-tight truncate" title="Approved: ${escapeHtml(a.club)} (${escapeHtml(a.ageGroup)})">
+                  ✓ <strong>${escapeHtml(a.club)}</strong> (${escapeHtml(a.ageGroup)})
+                </div>
+              `).join("")}
+              ${dayBookings.map(b => `
+                <div class="px-1.5 py-0.5 rounded bg-amber-100 border border-amber-400 text-amber-950 text-[10px] leading-tight truncate" title="Spot Check: ${escapeHtml(b.club)} - Officer: ${escapeHtml(b.officerName)}">
+                  <strong>${escapeHtml(b.club)}</strong>: ${escapeHtml(b.officerName)}
+                </div>
+              `).join("")}
+              ${daySchedules.map(s => `
+                <div class="px-1.5 py-0.5 rounded bg-sky-100 border border-sky-300 text-sky-900 text-[10px] leading-tight truncate" title="Training: ${escapeHtml(s.club)} ${escapeHtml(s.ageGroup)}">
+                  ${escapeHtml(s.club)} (${escapeHtml(s.ageGroup)})
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }
+
+      document.getElementById("master-calendar-days").innerHTML = html;
+    }
+
+    // 10. SECTION 4: ADMIN AUTHENTICATION & REPORT APPROVAL
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById("admin-email").value.trim();
+      const password = document.getElementById("admin-password").value;
+      const errBox = document.getElementById("admin-login-error");
+
+      if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+        isAdminLoggedIn = true;
+        sessionStorage.setItem("yec_admin_auth", "true");
+        errBox.classList.add("hidden");
+        document.getElementById("admin-login-form").reset();
+        updateAdminAuthView();
+        showToast("Admin login successful.", "success");
+      } else {
+        errBox.classList.remove("hidden");
+      }
+    }
+
+    function adminLogout() {
+      isAdminLoggedIn = false;
+      sessionStorage.removeItem("yec_admin_auth");
+      updateAdminAuthView();
+      showToast("Logged out of Admin portal.", "info");
+    }
+
+    function updateAdminAuthView() {
+      const loginView = document.getElementById("admin-login-view");
+      const dashView = document.getElementById("admin-dashboard-view");
+      if (isAdminLoggedIn) {
+        loginView.classList.add("hidden");
+        dashView.classList.remove("hidden");
+        renderPendingReports();
+        renderApprovedSummaryTable();
+      } else {
+        loginView.classList.remove("hidden");
+        dashView.classList.add("hidden");
+      }
+    }
+
+    function renderPendingReports() {
+      const container = document.getElementById("pending-reports-list");
+      const countPill = document.getElementById("admin-pending-count-pill");
+      const pending = appState.pendingReports;
+
+      countPill.textContent = `${pending.length} Pending`;
+
+      if (pending.length === 0) {
+        container.innerHTML = `<p class="text-sm text-slate-400 italic text-center py-6">No pending spot check reports awaiting approval.</p>`;
+        return;
+      }
+
+      container.innerHTML = pending.map(rep => {
+        const period = determineFundingPeriod(rep.date);
+        const periodText = period === 1 ? "1st Funding Period (Sep 2026–Jan 2027)" : period === 2 ? "2nd Funding Period (Feb 2027–Jun 2027)" : "Outside Standard Period";
+
+        return `
+          <div class="border border-slate-200 rounded-2xl p-5 bg-slate-50/70 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-slate-200 pb-3">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-base font-extrabold text-navy-900">${escapeHtml(rep.club)}</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-navy-900 text-white">${escapeHtml(rep.ageGroup)}</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-900">${escapeHtml(rep.date)}</span>
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-700">${periodText}</span>
+                </div>
+                <p class="text-xs text-slate-500 mt-1">Submitted by Officer: <strong>${escapeHtml(rep.officerName)}</strong> &bull; ${escapeHtml(rep.submittedAt)}</p>
+              </div>
+
+              <div class="flex items-center gap-2 self-start md:self-auto">
+                <button onclick="rejectPendingReport('${rep.id}')"
+                  class="px-3.5 py-2 rounded-xl border border-rose-300 bg-white hover:bg-rose-50 text-rose-700 text-xs font-bold transition">
+                  Reject / Delete
+                </button>
+                <button onclick="approvePendingReport('${rep.id}')"
+                  class="px-5 py-2 rounded-xl bg-pitch-600 hover:bg-pitch-700 text-white text-xs font-bold shadow transition flex items-center gap-1.5">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                  Approve Report
+                </button>
+              </div>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div class="bg-white p-3 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block">Venue</span>
+                <strong class="text-slate-800">${escapeHtml(rep.venue)}</strong>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block">Training / Spot Check Time</span>
+                <strong class="text-slate-800">${escapeHtml(rep.trainingTime)} / ${escapeHtml(rep.spotCheckTime)}</strong>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block">Field Players Attendance</span>
+                <strong class="text-slate-800">${escapeHtml(rep.fieldPlayers)}</strong>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-slate-200">
+                <span class="text-slate-400 block">Goalkeepers Attendance</span>
+                <strong class="text-slate-800">${escapeHtml(rep.goalkeepers)}</strong>
+              </div>
+            </div>
+
+            <!-- Staff Attendance Pills -->
+            <div class="flex flex-wrap gap-2 text-xs">
+              ${STAFF_ROLES.map(role => {
+                const status = rep.staff[role.id];
+                const isAttended = status === "Attended";
+                return `
+                  <span class="px-2.5 py-1 rounded-lg border font-medium ${isAttended ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}">
+                    ${role.label}: <strong>${escapeHtml(status)}</strong>
+                  </span>
+                `;
+              }).join("")}
+            </div>
+
+            ${rep.remarks ? `
+              <div class="bg-white p-3 rounded-xl border border-slate-200 text-xs">
+                <span class="font-bold text-slate-700">Remarks &amp; Extra Staff:</span>
+                <p class="text-slate-600 mt-0.5">${escapeHtml(rep.remarks)}</p>
+              </div>
+            ` : ""}
+
+            ${rep.photos && rep.photos.length > 0 ? `
+              <div>
+                <span class="text-xs font-bold text-slate-700 block mb-1.5">Attached Training Photos (${rep.photos.length}) — Click to enlarge:</span>
+                <div class="flex flex-wrap gap-2">
+                  ${rep.photos.map((p, idx) => `
+                    <img src="${p.dataUrl}" alt="Photo ${idx + 1}"
+                      onclick="openPhotoModal('${p.dataUrl}', '${escapeHtml(rep.club)} - ${escapeHtml(rep.date)}')"
+                      class="w-16 h-16 object-cover rounded-xl border border-slate-300 cursor-pointer hover:opacity-80 transition" />
+                  `).join("")}
+                </div>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("");
+    }
+
+    function approvePendingReport(reportId) {
+      const idx = appState.pendingReports.findIndex(r => r.id === reportId);
+      if (idx === -1) return;
+
+      const report = appState.pendingReports[idx];
+      appState.pendingReports.splice(idx, 1);
+
+      const approvedRecord = {
+        ...report,
+        period: determineFundingPeriod(report.date),
+        approvedAt: new Date().toLocaleString()
+      };
+      appState.approvedReports.push(approvedRecord);
+
+      saveState();
+      showToast(`Approved ${report.club} report! Master Table in Spot Check Calendar updated.`, "success");
+    }
+
+    function rejectPendingReport(reportId) {
+      appState.pendingReports = appState.pendingReports.filter(r => r.id !== reportId);
+      saveState();
+      showToast("Pending report removed.", "info");
+    }
+
+    function renderApprovedSummaryTable() {
+      const tbody = document.getElementById("approved-summary-tbody");
+
+      tbody.innerHTML = CLUBS.map(club => {
+        // Sort approved reports chronologically for each club
+        const clubReports = appState.approvedReports
+          .filter(r => r.club === club)
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        const check1 = clubReports[0] || null;
+        const check2 = clubReports[1] || null;
+
+        return `
+          <tr class="hover:bg-slate-50 align-top">
+            <td class="py-3.5 px-4 font-bold text-slate-900 border-r border-slate-200">
+              ${club}
+              <div class="text-[11px] font-normal text-slate-500 mt-0.5">${clubReports.length} approved total</div>
+            </td>
+            <td class="py-3.5 px-4 border-r border-slate-200">
+              ${renderSummaryCellHtml(check1, 1)}
+            </td>
+            <td class="py-3.5 px-4">
+              ${renderSummaryCellHtml(check2, 2)}
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderSummaryCellHtml(report, checkNum) {
+      if (!report) {
+        return `<span class="text-slate-400 italic">No approved Spot Check #${checkNum} yet</span>`;
+      }
+      const coachesSummary = STAFF_ROLES.map(r => `${r.label}: ${report.staff[r.id]}`).join(" | ");
+      return `
+        <div class="space-y-1 text-slate-700">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold">${escapeHtml(report.date)}</span>
+            <span class="px-2 py-0.5 rounded bg-navy-900 text-white font-semibold">${escapeHtml(report.ageGroup)}</span>
+            <span class="text-slate-600 font-medium">Venue: <strong>${escapeHtml(report.venue)}</strong></span>
+          </div>
+          <div>
+            <strong>Time:</strong> Training ${escapeHtml(report.trainingTime)} &bull; Spot Check ${escapeHtml(report.spotCheckTime)}
+          </div>
+          <div>
+            <strong>Attendance:</strong> Field Players: <span class="font-bold text-navy-900">${escapeHtml(report.fieldPlayers)}</span> &bull; Goalkeepers: <span class="font-bold text-navy-900">${escapeHtml(report.goalkeepers)}</span>
+          </div>
+          <div class="text-[11px] text-slate-600 bg-slate-100 p-2 rounded-lg">
+            <strong>Coaches:</strong> ${escapeHtml(coachesSummary)}
+          </div>
+        </div>
+      `;
+    }
+
+    // 11. EXPORT SUMMARY TO EXCEL (.XLSX)
+    function exportApprovedSummaryToExcel() {
+      if (!window.XLSX) {
+        showToast("Excel export library not loaded. Please check internet connection.", "error");
+        return;
+      }
+
+      const rows = [];
+
+      CLUBS.forEach(club => {
+        const clubReports = appState.approvedReports
+          .filter(r => r.club === club)
+          .sort((a, b) => a.date.localeCompare(b.date));
+
+        const c1 = clubReports[0] || {};
+        const c2 = clubReports[1] || {};
+
+        const formatCoaches = (rep) => {
+          if (!rep.staff) return "";
+          return STAFF_ROLES.map(r => `${r.label}: ${rep.staff[r.id] || ""}`).join("; ");
+        };
+
+        rows.push({
+          "Club Name": club,
+          "Total Approved Spot Checks": clubReports.length,
+
+          "Spot Check 1 - Date": c1.date || "",
+          "Spot Check 1 - Age Group": c1.ageGroup || "",
+          "Spot Check 1 - Venue": c1.venue || "",
+          "Spot Check 1 - Training Time": c1.trainingTime || "",
+          "Spot Check 1 - Spot Check Time": c1.spotCheckTime || "",
+          "Spot Check 1 - Field Players": c1.fieldPlayers || "",
+          "Spot Check 1 - Goalkeepers": c1.goalkeepers || "",
+          "Spot Check 1 - Coaches Attendance": formatCoaches(c1),
+          "Spot Check 1 - Remarks & Extra Staff": c1.remarks || "",
+
+          "Spot Check 2 - Date": c2.date || "",
+          "Spot Check 2 - Age Group": c2.ageGroup || "",
+          "Spot Check 2 - Venue": c2.venue || "",
+          "Spot Check 2 - Training Time": c2.trainingTime || "",
+          "Spot Check 2 - Spot Check Time": c2.spotCheckTime || "",
+          "Spot Check 2 - Field Players": c2.fieldPlayers || "",
+          "Spot Check 2 - Goalkeepers": c2.goalkeepers || "",
+          "Spot Check 2 - Coaches Attendance": formatCoaches(c2),
+          "Spot Check 2 - Remarks & Extra Staff": c2.remarks || ""
+        });
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Spot Check Summary");
+
+      // Also include a second sheet with all individual approved records
+      const detailedRows = appState.approvedReports.map(r => ({
+        "Club": r.club,
+        "Funding Period": r.period === 1 ? "1st Period (Sep 2026-Jan 2027)" : r.period === 2 ? "2nd Period (Feb 2027-Jun 2027)" : "Other",
+        "Date": r.date,
+        "Age Group": r.ageGroup,
+        "Venue": r.venue,
+        "Training Time": r.trainingTime,
+        "Spot Check Time": r.spotCheckTime,
+        "Field Players": r.fieldPlayers,
+        "Goalkeepers": r.goalkeepers,
+        "Head Coach": r.staff?.headCoach || "",
+        "Assistant Coach": r.staff?.assistantCoach || "",
+        "Academy GK Lead Coach": r.staff?.gkLeadCoach || "",
+        "Academy Physical Lead Coach": r.staff?.physicalLeadCoach || "",
+        "Officer Name": r.officerName,
+        "Remarks & Extra Staff": r.remarks || ""
+      }));
+      const detailedSheet = XLSX.utils.json_to_sheet(detailedRows.length ? detailedRows : [{ "Info": "No approved spot checks yet" }]);
+      XLSX.utils.book_append_sheet(workbook, detailedSheet, "All Approved Records");
+
+      XLSX.writeFile(workbook, `Youth_Elite_Clubs_Spot_Check_Summary_${new Date().toISOString().slice(0, 10)}.xlsx`);
+      showToast("Excel summary exported successfully!", "success");
+    }
+
+    // 12. REFRESH ALL UI COMPONENTS IN SYNC
+    function refreshAllViews() {
+      // Update pending badge in top nav
+      const badge = document.getElementById("pending-badge");
+      if (appState.pendingReports.length > 0) {
+        badge.textContent = appState.pendingReports.length;
+        badge.classList.remove("hidden");
+      } else {
+        badge.classList.add("hidden");
+      }
+
+      renderClubSelectorPills();
+      renderSelectedClubScheduleDetails();
+      renderClubCalendar();
+      renderMasterComplianceTable();
+      renderMasterCalendar();
+
+      if (isAdminLoggedIn) {
+        renderPendingReports();
+        renderApprovedSummaryTable();
+      }
+    }
+
+    // 13. MODALS & UTILITIES
+    function openPhotoModal(src, caption) {
+      document.getElementById("photo-modal-img").src = src;
+      document.getElementById("photo-modal-caption").textContent = caption;
+      document.getElementById("photo-modal").classList.remove("hidden");
+    }
+
+    function closePhotoModal() {
+      document.getElementById("photo-modal").classList.add("hidden");
+    }
+
+    function openResetConfirmModal() {
+      document.getElementById("reset-modal").classList.remove("hidden");
+    }
+
+    function closeResetConfirmModal() {
+      document.getElementById("reset-modal").classList.add("hidden");
+    }
+
+    function executeResetAllData() {
+      appState = getEmptyState();
+      localStorage.removeItem(STORAGE_KEY);
+      saveState();
+      closeResetConfirmModal();
+      showToast("All monitoring data has been reset to empty and 0.", "info");
+    }
+
+    function showToast(message, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+
+      const styles = {
+        success: "bg-navy-900 text-white border-pitch-500",
+        error: "bg-rose-900 text-white border-rose-500",
+        info: "bg-slate-800 text-white border-sky-400"
+      };
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border-l-4 text-xs font-semibold flex items-center justify-between gap-3 transition-all ${styles[type] || styles.info}`;
+      toast.innerHTML = `
+        <span>${escapeHtml(message)}</span>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white font-bold">&times;</button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 4500);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
